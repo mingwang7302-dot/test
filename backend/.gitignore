@@ -1,0 +1,5 @@
+# Ignore the instance folder, which contains the SQLite database
+instance/
+
+# Ignore log files
+*.log

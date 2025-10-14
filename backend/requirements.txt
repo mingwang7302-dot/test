@@ -1,0 +1,6 @@
+Flask
+yfinance
+Flask-Cors
+pandas
+numpy
+Flask-SQLAlchemy

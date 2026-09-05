@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 import json
+import re
 
 
 TWSE_SPOT_URL = "https://www.twse.com.tw/rwd/zh/fund/BFI82U"
@@ -43,6 +44,26 @@ def _request_json(url: str, *, params=None, timeout: int = 15):
         return json.loads(response.read().decode("utf-8"))
 
 
+def _payload_trading_date(payload, fallback: str) -> str:
+    """Read the actual trading date from a TWSE table, not the requested date.
+
+    Some TWSE endpoints return the latest table with stat=OK on weekends. In that
+    case the request date is Saturday/Sunday while the title still identifies the
+    previous trading day.
+    """
+    titles = [str(payload.get("title", ""))]
+    titles.extend(str(table.get("title", "")) for table in payload.get("tables", []))
+    for title in titles:
+        match = re.search(r"(\d{3})年\s*(\d{1,2})月\s*(\d{1,2})日", title)
+        if match:
+            year, month, day = map(int, match.groups())
+            return f"{year + 1911:04d}{month:02d}{day:02d}"
+        match = re.search(r"(20\d{2})[-/]?(\d{2})[-/]?(\d{2})", title)
+        if match:
+            return "".join(match.groups())
+    return fallback
+
+
 def _latest_twse_table(url: str, table_parser: Callable, lookback_days: int = 10):
     day = datetime.now(ZoneInfo("Asia/Taipei"))
     last_error = None
@@ -54,7 +75,7 @@ def _latest_twse_table(url: str, table_parser: Callable, lookback_days: int = 10
                 params={"response": "json", "date": query_date, "selectType": "ALL"},
             )
             if payload.get("stat") == "OK":
-                return query_date, table_parser(payload)
+                return _payload_trading_date(payload, query_date), table_parser(payload)
         except (OSError, ValueError, MarketDataError) as exc:
             last_error = exc
         day -= timedelta(days=1)

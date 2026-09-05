@@ -1,10 +1,14 @@
 import unittest
 from types import SimpleNamespace
 
-from market_data import _parse_margin, _parse_spot, evaluate_regime
+from market_data import _parse_margin, _parse_spot, _payload_trading_date, evaluate_regime
 
 
 class ParserTests(unittest.TestCase):
+    def test_weekend_query_uses_actual_date_in_roc_title(self):
+        payload = {"title": "115年09月04日 三大法人買賣金額統計表"}
+        self.assertEqual(_payload_trading_date(payload, "20260905"), "20260904")
+
     def test_spot_parser_uses_foreign_net(self):
         payload = {
             "fields": ["單位名稱", "買進金額", "賣出金額", "買賣差額"],

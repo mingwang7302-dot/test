@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders main title', () => {
+test('renders Taiwan market dashboard title', () => {
   render(<App />);
-  const titleElement = screen.getByText(/AI 股價分析與估值工具/i);
-  expect(titleElement).toBeInTheDocument();
+  expect(screen.getByText(/台股籌碼與估值工作台/i)).toBeInTheDocument();
 });

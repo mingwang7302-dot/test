@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from typing import Callable, Iterable
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 import json
 
 
@@ -43,7 +44,7 @@ def _request_json(url: str, *, params=None, timeout: int = 15):
 
 
 def _latest_twse_table(url: str, table_parser: Callable, lookback_days: int = 10):
-    day = datetime.now()
+    day = datetime.now(ZoneInfo("Asia/Taipei"))
     last_error = None
     for _ in range(lookback_days):
         query_date = day.strftime("%Y%m%d")
